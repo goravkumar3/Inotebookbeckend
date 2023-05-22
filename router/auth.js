@@ -5,18 +5,19 @@ const User=require('./../modules/User');
 const bcrypt = require('bcryptjs');
 const jwt=require('jsonwebtoken');
 const JWT_Secert="notebookSeceret";
+const fetchUser=require('../middleware/fetchuser')
 router.post('/',[
     body('name').isLength({min:3}).withMessage("erite at least 3 character"),
     body('email').isEmail().withMessage('invaild'),
     body('password').isLength({min:7}).withMessage("give password at least 7 character")
 ],async (req,res)=>{
-    const result = validationResult(req);
-    if (!result.isEmpty()) {
-      return res.status(400).json({result:result.array()});
+    const error = validationResult(req);
+    if (!error.isEmpty()) {
+      return res.status(400).json({error:error.array()});
     }
-    let user=await User.findOne({email:req.body.email});
     try{
-      if(!user){
+      let user=await User.findOne({email:req.body.email});
+      if(user){
         return res.status(400).json({err:"enter unique email"})
       }
       const salt = await bcrypt.genSaltSync(10);
@@ -33,6 +34,7 @@ router.post('/',[
      }
      const token=jwt.sign(data,JWT_Secert);
      res.json(token);
+     console.log(token)
     }catch(err){
       console.error(err);
       res.status(500).json({err:"Internal server error"});
@@ -64,6 +66,17 @@ router.post('/login',[
    }
    const token=jwt.sign(data,JWT_Secert);
    res.json(token);
+  }catch(err){
+    console.error(err);
+    res.status(500).json({err:"Internal server error"});
+  }
+})
+//getuser authentication code
+router.post('/getuser',fetchUser,async (req,res)=>{
+  try{
+  const userId=req.user.id;
+  const user=await User.findById(userId);
+  res.send(user)
   }catch(err){
     console.error(err);
     res.status(500).json({err:"Internal server error"});
