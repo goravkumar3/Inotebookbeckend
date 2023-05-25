@@ -36,7 +36,7 @@ let note=new Notes({
     }
 })
 
-//add the notes
+//update the notes
 router.put('/updateNotes/:id',fetchUser,[
     body('title','title must be 3 character word').isLength({min:3}),
     body('description','description must be 10 character word').isLength({min:10})
@@ -56,6 +56,24 @@ router.put('/updateNotes/:id',fetchUser,[
         }
     note=await Notes.findByIdAndUpdate(req.params.id,{$set:newNote},{new:true})
     res.send(note) 
+            
+        } catch (err) {
+          console.error(err);
+          res.status(500).json({err:"Internal server error"});
+        }
+    })
+    //delete the notes
+router.delete('/deleteNotes/:id',fetchUser,async (req,res)=>{
+        try {
+        let note=await Notes.findById(req.params.id)
+        if(!note){
+            res.status(404).send("not found")
+        }
+        if(note.user.toString()!==req.user.id){
+            return res.status(401).send("Access deniad")
+        }
+    note=await Notes.findByIdAndDelete(req.params.id)
+    res.json({"Success":"your note has been deleted","note":note}) 
             
         } catch (err) {
           console.error(err);
