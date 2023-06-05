@@ -16,7 +16,7 @@ router.get('/fetchNotes',fetchUser,async (req,res)=>{
 //add the notes
 router.post('/addNotes',fetchUser,[
 body('title','title must be 3 character word').isLength({min:3}),
-body('description','description must be 10 character word').isLength({min:10})
+body('description','description must be 3 character word').isLength({min:3})
 ],async (req,res)=>{
     const {title,description,tag}=req.body;
     try {
