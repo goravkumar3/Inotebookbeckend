@@ -11,14 +11,15 @@ router.post('/',[
     body('email').isEmail().withMessage('invaild'),
     body('password').isLength({min:7}).withMessage("give password at least 7 character")
 ],async (req,res)=>{
+  let success=false;
     const error = validationResult(req);
     if (!error.isEmpty()) {
-      return res.status(400).json({error:error.array()});
+      return res.status(400).json({success,error:error.array()});
     }
     try{
       let user=await User.findOne({email:req.body.email});
       if(user){
-        return res.status(400).json({err:"enter unique email"})
+        return res.status(400).json({success,err:"enter unique email"})
       }
       const salt = await bcrypt.genSaltSync(10);
       const secPass=await bcrypt.hash(req.body.password,salt)
@@ -33,7 +34,8 @@ router.post('/',[
       }
      }
      const token=jwt.sign(data,JWT_Secert);
-     res.json(token);
+     success=true;
+     res.json({success,token});
      console.log(token)
     }catch(err){
       console.error(err);
@@ -45,19 +47,20 @@ router.post('/login',[
   body('email').isEmail().withMessage('invaild'),
   body('password').isLength({min:7}).withMessage("give password at least 7 character")
 ],async (req,res)=>{
+  let success=false;
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    return res.status(400).json({result:result.array()});
+    return res.status(400).json({success,result:result.array()});
   }
   const {email,password}=req.body;
   try{
     let user=await User.findOne({email});
     if(!user){
-      return res.status(400).json({err:"Enter correct value"})
+      return res.status(400).json({success,err:"Enter correct value"})
     }
     const passCampare=await bcrypt.compare(password,user.password)
     if(!passCampare){
-      return res.status(400).json({err:"Enter correct value"})
+      return res.status(400).json({success,err:"Enter correct value"})
     }
    const data={
     user:{
@@ -65,7 +68,8 @@ router.post('/login',[
     }
    }
    const token=jwt.sign(data,JWT_Secert);
-   res.json(token);
+   success=true
+   res.json({success,token});
   }catch(err){
     console.error(err);
     res.status(500).json({err:"Internal server error"});
